@@ -24,7 +24,7 @@ Request:
 
 Price:
 Cached: $0.01
-Fresh: $0.05
+Fresh: $0.03
 Payment: x402 (when enabled)
 
 Latency:

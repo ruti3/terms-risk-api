@@ -66,7 +66,7 @@ curl -s -X POST http://localhost:8000/terms-risk \
 
 See [`docs/examples/request.json`](docs/examples/request.json).
 
-### Fresh response (`$0.05`)
+### Fresh response (`$0.03`)
 
 ```json
 {
@@ -82,7 +82,7 @@ See [`docs/examples/request.json`](docs/examples/request.json).
     }
   ],
   "cached": false,
-  "price_usd": 0.05
+  "price_usd": 0.03
 }
 ```
 
@@ -155,7 +155,7 @@ Full report: [`docs/benchmark.md`](docs/benchmark.md)
 
 | Scenario | Price | When |
 |----------|-------|------|
-| Fresh analysis | **$0.05** | First request for url+use_case, or page changed |
+| Fresh analysis | **$0.03** | First request for url+use_case, or page changed |
 | Cache hit | **$0.01** | Repeat request, same content hash |
 
 Payment via [x402](https://x402.org) when `X402_ENABLED=true`. Discoverable on [x402scan](https://www.x402scan.com/resources/register).

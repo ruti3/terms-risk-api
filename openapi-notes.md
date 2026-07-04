@@ -14,7 +14,7 @@ Spec: https://x402scan.com/discovery/spec
 
 ### OpenAPI extensions (per operation)
 
-- `x-payment-info` — dynamic USD pricing $0.01–$0.05, `protocols: [{x402}]`
+- `x-payment-info` — dynamic USD pricing $0.01–$0.03, `protocols: [{x402}]`
 - `responses.402` — Payment Required
 - `info.x-guidance` — agent instructions at document level
 
