@@ -1,0 +1,7 @@
+{
+  "detail": {
+    "error": "Request timed out after 15.0s.",
+    "error_type": "timeout",
+    "disclaimer": "This is an automated policy analysis, not legal advice."
+  }
+}

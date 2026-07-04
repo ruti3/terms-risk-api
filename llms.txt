@@ -1,0 +1,70 @@
+# Terms Risk API
+
+Purpose:
+Analyze Terms of Service, Privacy Policy, or license pages against a specific use case and return structured JSON with evidence quotes.
+
+Not legal advice. Automated policy analysis only.
+
+Best for:
+- scraping legality
+- commercial reuse
+- redistribution rights
+- attribution requirements
+- official API requirements
+- use-case risk assessment before building integrations
+
+Endpoint:
+POST /terms-risk
+
+Request:
+{
+  "url": "https://example.com/terms",
+  "use_case": "Can I scrape product listings for a price-comparison app?"
+}
+
+Price:
+Cached: $0.01
+Fresh: $0.05
+Payment: x402 (when enabled)
+
+Latency:
+Cached: 50-200ms
+Fresh: 3-15s
+Fetch timeout: 15s
+
+Returns:
+risk_level (low | medium | high | unclear)
+scraping_allowed (true | false | unclear)
+commercial_use_allowed (true | false | unclear)
+redistribution_allowed (true | false | unclear)
+requires_attribution (true | false | unclear)
+requires_official_api (true | false | unclear)
+confidence (0.0-1.0)
+summary
+evidence [{quote, reason}]
+cached
+generated_at
+cache_age_days
+price_usd
+disclaimer
+
+Cache:
+Same url + use_case returns cached result unless page content changes.
+Check cache_age_days before paying for a fresh analysis.
+
+Errors (detail.error_type):
+invalid_url, timeout, network_error, blocked, not_found, http_error, non_html, empty_response, empty_content, analysis_error
+
+Other endpoints:
+GET /openapi.json — OpenAPI 3.1 discovery (x402scan)
+GET /docs — Swagger UI
+GET /health — liveness probe
+GET /.well-known/x402 — x402 resource fan-out
+GET /llms.txt — this file
+
+Example:
+curl -X POST https://api.example.com/terms-risk \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://www.cloudflare.com/website-terms/","use_case":"Can I scrape and commercially reuse public listings?"}'
+
+Full reference: README.md

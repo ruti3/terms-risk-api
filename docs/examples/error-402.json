@@ -1,0 +1,17 @@
+{
+  "note": "When X402_ENABLED=true, unpaid POST /terms-risk returns HTTP 402 with a Payment-Required header (x402 v2). Body is typically empty.",
+  "status": 402,
+  "headers": {
+    "Payment-Required": "<base64-encoded x402 challenge with accepts[] array>"
+  },
+  "accepts_example": {
+    "scheme": "exact",
+    "network": "eip155:84532",
+    "amount": "50000",
+    "payTo": "0xYourWalletAddress",
+    "extra": {
+      "name": "USDC",
+      "version": "2"
+    }
+  }
+}
