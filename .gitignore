@@ -1,6 +1,9 @@
 .venv/
+node_modules/
 __pycache__/
 *.pyc
 .env
 data/cache.sqlite
 data/logs/
+cdp_api_key.json
+cdp_wallet_secret.txt

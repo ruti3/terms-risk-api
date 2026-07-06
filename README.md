@@ -160,6 +160,20 @@ Full report: [`docs/benchmark.md`](docs/benchmark.md)
 
 Payment via [x402](https://x402.org) when `X402_ENABLED=true`. Discoverable on [x402scan](https://www.x402scan.com/resources/register).
 
+### x402 setup (CDP wallet + probe)
+
+```bash
+# 1. Create receiver wallet (uses .env or cdp_api_key.json + cdp_wallet_secret.txt)
+npm run wallet:create
+
+# 2. Set X402_PAY_TO in .env, enable payment, restart uvicorn
+
+# 3. Verify unpaid requests return 402
+npm run x402:probe
+```
+
+`probe-x402` expects **402** — if you get **400**, the handler ran (payment gate off or server not restarted). A **200** without payment means `X402_SKIP_PAYMENT=true`.
+
 ---
 
 ## Deployment
