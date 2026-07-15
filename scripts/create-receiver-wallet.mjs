@@ -55,7 +55,8 @@ Add to .env:
   X402_SKIP_PAYMENT=false
   X402_NETWORK=eip155:84532
   X402_FACILITATOR_URL=https://x402.org/facilitator
-  X402_PRICE=$0.03
+
+# Pricing is dynamic ($0.01 cached / $0.03 fresh) — no X402_PRICE needed.
 
 Restart the API, then verify x402:
 

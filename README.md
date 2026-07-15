@@ -29,7 +29,7 @@ A production-ready FastAPI service that analyzes Terms of Service, Privacy Polic
 ## Quick start
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/terms-risk-api.git
+git clone https://github.com/ruti3/terms-risk-api.git
 cd terms-risk-api
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
@@ -192,8 +192,10 @@ Buyer docs: [CDP x402 Quickstart for Buyers](https://docs.cdp.coinbase.com/x402/
 
 ```bash
 docker build -t terms-risk-api .
-docker run -p 8000:8000 --env-file .env -v $(pwd)/data:/app/data terms-risk-api
+docker run -p 8080:8080 --env-file .env -v $(pwd)/data:/app/data terms-risk-api
 ```
+
+Container listens on **8080** (matches `fly.toml` `internal_port`).
 
 ### Render
 
@@ -215,13 +217,14 @@ Set start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 
 ### Fly.io
 
+Config is in [`fly.toml`](fly.toml) (`internal_port = 8080`).
+
 ```bash
-fly launch
 fly secrets set OPENAI_API_KEY=sk-...
 fly deploy
 ```
 
-Mount a volume at `/app/data` for SQLite cache.
+Mount a volume at `/app/data` for SQLite cache. Set `PUBLIC_BASE_URL` to your Fly HTTPS URL.
 
 ### Production checklist
 
@@ -270,21 +273,30 @@ Machine-readable discovery:
 ```
 terms-risk-api/
 ├── app/
-│   ├── main.py           # FastAPI routes
-│   ├── fetcher.py        # HTTP fetch
-│   ├── cleaner.py        # HTML cleaning
-│   ├── analyzer.py       # OpenAI analysis
-│   ├── cache.py          # SQLite cache
-│   ├── discovery.py      # x402scan OpenAPI
-│   └── x402_config.py    # Payment middleware
+│   ├── main.py                 # FastAPI routes
+│   ├── fetcher.py              # HTTP fetch
+│   ├── cleaner.py              # HTML cleaning
+│   ├── analyzer.py             # OpenAI analysis
+│   ├── cache.py                # SQLite cache
+│   ├── pricing.py              # Cache vs fresh price tiers
+│   ├── pricing_middleware.py   # Sets x402 pricing context
+│   ├── cdp_credentials.py      # CDP API key loading
+│   ├── discovery.py            # x402scan OpenAPI
+│   └── x402_config.py          # Payment middleware (+ CDP facilitator)
+├── scripts/
+│   ├── create-receiver-wallet.mjs
+│   ├── fund-buyer-wallet.mjs
+│   ├── pay-terms-risk.mjs
+│   ├── probe-x402.mjs
+│   └── benchmark.py
 ├── docs/
 │   ├── ARCHITECTURE.md
 │   ├── benchmark.md
-│   ├── examples/         # JSON fixtures
+│   ├── examples/
 │   └── screenshots/
-├── scripts/benchmark.py
-├── llms.txt
+├── fly.toml
 ├── Dockerfile
+├── llms.txt
 └── requirements.txt
 ```
 
