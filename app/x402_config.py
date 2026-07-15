@@ -13,15 +13,17 @@ import os
 from typing import TYPE_CHECKING
 
 from app.discovery import RESPONSE_EXAMPLE, X_GUIDANCE
-from app.pricing import FRESH_PRICE_USD
+from app.pricing import CACHED_PRICE_USD, FRESH_PRICE_USD
 
 if TYPE_CHECKING:
     from fastapi import FastAPI
+    from x402.http.types import HTTPRequestContext
 
 # Defaults — Base Sepolia testnet (supported by https://x402.org/facilitator).
-# For Base mainnet production, set X402_NETWORK=eip155:8453 and a mainnet facilitator.
+# For Base mainnet production, set X402_NETWORK=eip155:8453 and CDP facilitator.
 DEFAULT_NETWORK = "eip155:84532"
 DEFAULT_FACILITATOR = "https://x402.org/facilitator"
+CDP_FACILITATOR_URL = "https://api.cdp.coinbase.com/platform/v2/x402"
 
 
 def x402_enabled() -> bool:
@@ -30,6 +32,41 @@ def x402_enabled() -> bool:
 
 def x402_skip_payment() -> bool:
     return os.getenv("X402_SKIP_PAYMENT", "false").lower() in ("1", "true", "yes")
+
+
+def _terms_risk_price(context: HTTPRequestContext) -> str:
+    """$0.01 when url+use_case exists in cache, else $0.03."""
+    request = getattr(context.adapter, "_request", None)
+    tier = getattr(request.state, "x402_pricing_tier", "fresh") if request else "fresh"
+    if tier == "cached":
+        return f"${CACHED_PRICE_USD:.2f}"
+    return f"${FRESH_PRICE_USD:.2f}"
+
+
+def _build_facilitator():
+    from x402.http import HTTPFacilitatorClient
+
+    from app.cdp_credentials import load_cdp_api_credentials
+
+    facilitator_url = os.getenv("X402_FACILITATOR_URL", DEFAULT_FACILITATOR).rstrip("/")
+    creds = load_cdp_api_credentials()
+    needs_cdp_auth = "cdp.coinbase.com" in facilitator_url
+
+    if needs_cdp_auth and creds:
+        from cdp.x402 import create_facilitator_config
+
+        config = create_facilitator_config(creds["api_key_id"], creds["api_key_secret"])
+        if facilitator_url != config["url"]:
+            config = {**config, "url": facilitator_url}
+        return HTTPFacilitatorClient(config)
+
+    if needs_cdp_auth and not creds:
+        raise RuntimeError(
+            "X402_FACILITATOR_URL points at CDP but CDP_API_KEY_ID / "
+            "CDP_API_KEY_SECRET are not configured."
+        )
+
+    return HTTPFacilitatorClient({"url": facilitator_url})
 
 
 def _build_routes() -> dict:
@@ -42,7 +79,6 @@ def _build_routes() -> dict:
         pay_to = "0x0000000000000000000000000000000000000001"
 
     network = os.getenv("X402_NETWORK", DEFAULT_NETWORK)
-    price = os.getenv("X402_PRICE", f"${FRESH_PRICE_USD:.2f}")
 
     extensions = declare_discovery_extension(
         input={
@@ -86,7 +122,7 @@ def _build_routes() -> dict:
             accepts=PaymentOption(
                 scheme="exact",
                 pay_to=pay_to,
-                price=price,
+                price=_terms_risk_price,
                 network=network,
             ),
             description=X_GUIDANCE[:200],
@@ -107,15 +143,13 @@ def setup_x402_middleware(app: FastAPI) -> None:
     if not x402_enabled() or x402_skip_payment():
         return
 
-    from x402.http import HTTPFacilitatorClient
     from x402.http.middleware.fastapi import PaymentMiddlewareASGI
     from x402.mechanisms.evm.exact import ExactEvmServerScheme
     from x402.server import x402ResourceServer
 
-    facilitator_url = os.getenv("X402_FACILITATOR_URL", DEFAULT_FACILITATOR)
     network = os.getenv("X402_NETWORK", DEFAULT_NETWORK)
 
-    facilitator = HTTPFacilitatorClient({"url": facilitator_url})
+    facilitator = _build_facilitator()
     server = x402ResourceServer(facilitator)
     server.register(network, ExactEvmServerScheme())
 

@@ -163,16 +163,26 @@ Payment via [x402](https://x402.org) when `X402_ENABLED=true`. Discoverable on [
 ### x402 setup (CDP wallet + probe)
 
 ```bash
-# 1. Create receiver wallet (uses .env or cdp_api_key.json + cdp_wallet_secret.txt)
+# Seller: create receiver wallet → set X402_PAY_TO in .env → restart API
 npm run wallet:create
 
-# 2. Set X402_PAY_TO in .env, enable payment, restart uvicorn
-
-# 3. Verify unpaid requests return 402
+# Verify unpaid requests return 402
 npm run x402:probe
+
+# Buyer: fund testnet wallet (ETH + USDC on Base Sepolia)
+npm run wallet:fund
+
+# Buyer: pay $0.03 and call POST /terms-risk (full end-to-end)
+npm run x402:pay
 ```
 
-`probe-x402` expects **402** — if you get **400**, the handler ran (payment gate off or server not restarted). A **200** without payment means `X402_SKIP_PAYMENT=true`.
+`probe-x402` expects **402** — if you get **400**, the handler ran (payment gate off or server not restarted).
+
+Buyer docs: [CDP x402 Quickstart for Buyers](https://docs.cdp.coinbase.com/x402/quickstart-for-buyers)
+
+**CDP facilitator (testnet or mainnet):** set `X402_FACILITATOR_URL=https://api.cdp.coinbase.com/platform/v2/x402` plus `CDP_API_KEY_ID` / `CDP_API_KEY_SECRET`. The server signs Ed25519 JWTs automatically via `cdp-sdk`.
+
+**Dynamic pricing:** x402 charges **$0.01** when `url`+`use_case` already exists in the SQLite cache, otherwise **$0.03**. No `X402_PRICE` env var.
 
 ---
 
@@ -218,7 +228,9 @@ Mount a volume at `/app/data` for SQLite cache.
 - [ ] Set `OPENAI_API_KEY`
 - [ ] Set `PUBLIC_BASE_URL` to your public HTTPS origin
 - [ ] Enable x402: `X402_ENABLED=true`, `X402_PAY_TO=0x...`
-- [ ] Use `eip155:84532` + `https://x402.org/facilitator` for testnet, or mainnet facilitator for `eip155:8453`
+- [ ] **Testnet:** `eip155:84532` + `https://x402.org/facilitator` (no CDP auth)
+- [ ] **Mainnet / CDP facilitator:** `eip155:8453` + `X402_FACILITATOR_URL=https://api.cdp.coinbase.com/platform/v2/x402` + `CDP_API_KEY_ID` / `CDP_API_KEY_SECRET`
+- [ ] Pricing is dynamic ($0.01 cached url+use_case, $0.03 fresh) — no `X402_PRICE` env needed
 - [ ] Persist `data/` volume across deploys
 - [ ] Validate discovery: `npx -y @agentcash/discovery yourdomain.com -v`
 
@@ -233,7 +245,9 @@ Mount a volume at `/app/data` for SQLite cache.
 | `X402_ENABLED` | `false` | Enable payment gate |
 | `X402_SKIP_PAYMENT` | `true` | Bypass payment (local dev) |
 | `X402_PAY_TO` | — | Wallet address |
-| `X402_NETWORK` | `eip155:84532` | Payment network |
+| `X402_NETWORK` | `eip155:84532` | Payment network (CAIP-2) |
+| `X402_FACILITATOR_URL` | `https://x402.org/facilitator` | Testnet facilitator (no auth). Use `https://api.cdp.coinbase.com/platform/v2/x402` for CDP |
+| `CDP_API_KEY_ID` / `CDP_API_KEY_SECRET` | — | Required when using CDP facilitator (also `cdp_api_key.json`) |
 | `PUBLIC_BASE_URL` | — | Canonical URL for discovery docs |
 | `CACHE_DB_PATH` | `data/cache.sqlite` | SQLite cache path |
 

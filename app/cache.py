@@ -60,6 +60,15 @@ class Cache:
                 """
             )
 
+    def has_entry(self, url: str, use_case: str) -> bool:
+        """True when url+use_case has a cached row (used for x402 tier pricing)."""
+        key = _cache_key(url, use_case)
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT 1 FROM cache WHERE cache_key = ? LIMIT 1", (key,)
+            ).fetchone()
+        return row is not None
+
     def get(
         self, request: TermsRiskRequest, cleaned_text_hash: str
     ) -> TermsRiskResponse | None:

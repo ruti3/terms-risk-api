@@ -21,6 +21,7 @@ from app.fetcher import FetchError, fetch_url
 from app.logger import RequestLogger
 from app.models import ErrorResponse, TermsRiskRequest, TermsRiskResponse
 from app.pricing import CACHED_PRICE_USD, DISCLAIMER, FRESH_PRICE_USD
+from app.pricing_middleware import attach_pricing_context_middleware
 from app.x402_config import setup_x402_middleware, x402_enabled, x402_skip_payment
 
 load_dotenv()
@@ -53,6 +54,8 @@ app = FastAPI(
 
 # x402 payment gate — must wrap routes (see app/x402_config.py)
 setup_x402_middleware(app)
+# Runs before x402 on incoming requests (Starlette: registered after = outermost)
+attach_pricing_context_middleware(app)
 
 
 @app.get("/")

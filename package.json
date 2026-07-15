@@ -2,10 +2,15 @@
   "type": "module",
   "scripts": {
     "wallet:create": "node scripts/create-receiver-wallet.mjs",
-    "x402:probe": "node scripts/probe-x402.mjs"
+    "wallet:fund": "node scripts/fund-buyer-wallet.mjs",
+    "x402:probe": "node scripts/probe-x402.mjs",
+    "x402:pay": "node scripts/pay-terms-risk.mjs"
   },
   "dependencies": {
     "@coinbase/cdp-sdk": "^1.51.2",
-    "dotenv": "^17.4.2"
+    "@x402/evm": "^2.17.0",
+    "@x402/fetch": "^2.17.0",
+    "dotenv": "^17.4.2",
+    "viem": "^2.54.5"
   }
 }
