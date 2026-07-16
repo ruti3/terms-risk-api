@@ -112,6 +112,15 @@ def build_discovery_openapi(base_url: str) -> dict[str, Any]:
     """
     resource_url = f"{base_url.rstrip('/')}/terms-risk"
 
+    # NOTE:
+    # Pydantic v2 emits JSON Schemas with `$defs` *inside* the model schema object
+    # while `$ref` pointers may still be written as `#/$defs/...` (document-root).
+    # Some discovery validators (including `@agentcash/discovery`) dereference
+    # JSON pointers assuming `$defs` exists at the OpenAPI document root.
+    # Hoist `$defs` to the top-level so refs like `#/$defs/EvidenceItem` resolve.
+    response_schema = dict(RESPONSE_SCHEMA)
+    response_defs = response_schema.pop("$defs", {})
+
     return {
         "openapi": "3.1.0",
         "info": {
@@ -137,6 +146,9 @@ def build_discovery_openapi(base_url: str) -> dict[str, Any]:
                     "summary": "Analyze Terms of Service for use-case risk",
                     "description": X_GUIDANCE,
                     "tags": ["terms", "policy", "legal"],
+                    # Explicitly mark as public from an OpenAPI auth perspective.
+                    # x402 payment gating is represented via `x-payment-info`.
+                    "security": [],
                     "x-payment-info": _payment_info(),
                     "requestBody": {
                         "required": True,
@@ -193,15 +205,19 @@ def build_discovery_openapi(base_url: str) -> dict[str, Any]:
                     "operationId": "healthCheck",
                     "summary": "Health check",
                     "responses": {"200": {"description": "OK"}},
+                    # Liveness probe should be callable without auth.
+                    "security": [],
                 }
             },
         },
         "components": {
             "schemas": {
                 "TermsRiskRequest": REQUEST_SCHEMA,
-                "TermsRiskResponse": RESPONSE_SCHEMA,
+                "TermsRiskResponse": response_schema,
             }
         },
+        # JSON Schema `$defs` for any `#/$defs/...` refs in component schemas.
+        "$defs": response_defs,
         "x402": {
             "resources": [resource_url],
         },

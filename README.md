@@ -226,6 +226,8 @@ fly deploy
 
 Mount a volume at `/app/data` for SQLite cache. Set `PUBLIC_BASE_URL` to your Fly HTTPS URL.
 
+GitHub auto-deploy is configured via [`.github/workflows/fly-deploy.yml`](.github/workflows/fly-deploy.yml). Set the repo secret `FLY_API_TOKEN`, then every push to `main` will run `flyctl deploy --remote-only`.
+
 ### Production checklist
 
 - [ ] Set `OPENAI_API_KEY`

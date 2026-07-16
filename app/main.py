@@ -31,6 +31,7 @@ LOG_DIR = os.getenv("LOG_DIR", "data/logs")
 TIMEOUT = float(os.getenv("REQUEST_TIMEOUT_SECONDS", "15"))
 MAX_TEXT_CHARS = int(os.getenv("MAX_TEXT_CHARS", "12000"))
 LLMS_TXT = Path(__file__).resolve().parent.parent / "llms.txt"
+FAVICON_ICO = Path(__file__).resolve().parent.parent / "favicon.ico"
 
 cache: Cache
 request_logger: RequestLogger
@@ -97,6 +98,12 @@ def health() -> dict:
 def llms_txt() -> FileResponse:
     """Agent discovery file (llms.txt convention)."""
     return FileResponse(LLMS_TXT, media_type="text/plain; charset=utf-8")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon() -> FileResponse:
+    """Site icon for browsers and discovery validators."""
+    return FileResponse(FAVICON_ICO, media_type="image/x-icon")
 
 
 @app.get("/.well-known/x402")

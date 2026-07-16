@@ -12,6 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app ./app
 COPY llms.txt .
+COPY favicon.ico .
 RUN mkdir -p data/logs
 
 ENV PYTHONUNBUFFERED=1
