@@ -13,6 +13,7 @@ from app.pricing import CACHED_PRICE_USD, DISCLAIMER, FRESH_PRICE_USD
 
 API_TITLE = "Terms Risk API"
 API_VERSION = "0.1.0"
+API_CONTACT_EMAIL = "ruuthi@gmail.com"
 
 X_GUIDANCE = (
     "Analyzes a Terms of Service, Privacy Policy, or license URL against a "
@@ -120,6 +121,9 @@ def build_discovery_openapi(base_url: str) -> dict[str, Any]:
                 "Paid API that fetches a policy page and returns structured "
                 "legal-risk analysis for a specific use case."
             ),
+            "contact": {
+                "email": API_CONTACT_EMAIL,
+            },
             "x-guidance": X_GUIDANCE,
         },
         "x-discovery": {
